@@ -38,11 +38,14 @@ try {
           exit();
         }
   	  } else if (isset($_GET['idpadre'])) {
+        
         $sql = $conexion->prepare("SELECT distinct
-                                    depr.prod_idhijo as idhijo
-                                    FROM pinchetas_restaurante.dependenciaproducto depr
-                                    where depr.prod_idpadre = ?
-                                    order by depr.depr_id;  ");
+          depr.prod_idhijo as idhijo,
+          IFNULL(depr.depr_cantidad, 1) as cantidad
+          FROM pinchetas_restaurante.dependenciaproducto depr
+          where depr.prod_idpadre = ?
+          order by depr.depr_id;  ");
+
         $sql->bindValue(1, $_GET['idpadre']);
         $sql->execute();
         $sql->setFetchMode(PDO::FETCH_ASSOC);
@@ -85,14 +88,15 @@ try {
           foreach ($hijos as $clave => $hijo) {
               if ($bandera) {
                   $sql2 = "INSERT INTO 
-                      pinchetas_restaurante.dependenciaproducto (prod_idpadre, prod_idhijo, depr_registradopor, depr_fechacambio)
-                      VALUES (?, ?, ?, ?); ";
+                      pinchetas_restaurante.dependenciaproducto (depr_cantidad, prod_idpadre, prod_idhijo, depr_registradopor, depr_fechacambio)
+                      VALUES (?, ?, ?, ?, ?); ";
 
                   $sql2 = $conexion->prepare($sql2);
-                  $sql2->bindValue(1, $idpadre);
-                  $sql2->bindValue(2, $hijo["idhijo"]);
-                  $sql2->bindValue(3, $registradopor);
-                  $sql2->bindValue(4, $date);
+                  $sql2->bindValue(1, $hijo["cantidad"]);
+                  $sql2->bindValue(2, $idpadre);
+                  $sql2->bindValue(3, $hijo["idhijo"]);
+                  $sql2->bindValue(4, $registradopor);
+                  $sql2->bindValue(5, $date);
                   $result2 = $sql2->execute();
                   $postId = $conexion->lastInsertId();
                   if ($postId > 0) {

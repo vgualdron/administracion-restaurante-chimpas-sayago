@@ -78,7 +78,7 @@
                     <span style="color:red;">* </span>Producto
                   </span>:<br>
                   <span>
-                    {{objeto.descripcion}}
+                    {{objeto.descripciontipoproducto}} - {{objeto.descripcion}}
                   </span>
                 </b-col>
               </b-row>
@@ -88,15 +88,35 @@
                   <span class="font-weight-bold">
                     <span style="color:red;">* </span>Productos de los que depende
                   </span>:<br>
-                  <b-form-group v-if="objeto.id">
-                    <b-form-checkbox-group
-                      stacked
-                      v-model="productosSeleccionados"
-                      id="checkboxes1"
-                      name="check-productos">
-                      <b-form-checkbox :key="'prod_' + p" v-for="(producto, p) in items" :value="{idhijo: producto.id}">{{producto.descripcion}}</b-form-checkbox>
-                    </b-form-checkbox-group>  
-                  </b-form-group>
+                  <template>
+                    <label class="font-weight-bold mt-3 item-selected" :key="'label-value_' + v" v-for="(value, v) in getValuesInputs()">{{value.cantidad}} - {{value.nombretipoproducto}} - {{value.nombre}}<br></label>
+                  </template>
+                  <template v-if="objeto.id">
+                    <b-row class="my-1" :key="'tipo-prod_' + t" v-for="(tipo, t) in tipoProductosActual">
+                      <b-col sm="12">
+                        <label class="font-weight-bold mt-3">{{tipo.descripcion}}:</label>
+                        <b-row class="my-1" :key="'prod_' + p" v-for="(producto, p) in tipo.productos">
+                          <b-col sm="6">
+                            <label :for="'label-prod_' + producto.id">{{producto.descripcion}}:</label>
+                          </b-col>
+                          <b-col sm="6">
+                            <b-form-input
+                              :id="producto.id"
+                              :ref="'input-prod_' + producto.id"
+                              size="sm"
+                              type="number"
+                              placeholder="cantidad"
+                              @change="changeValueInput"
+                              :class="producto.cantidadDependiente == 0 ? '' : 'item-selected'"
+                              v-model="producto.cantidadDependiente"
+                              required>
+                            </b-form-input>
+                          </b-col>
+                        </b-row>
+                      </b-col>
+                      
+                    </b-row>
+                  </template>
                   <b-alert v-else show variant="info">Debe Seleccionar el producto.</b-alert>
                 </b-col>
               </b-row>
@@ -121,12 +141,6 @@
     </b-row>
   </div>
 </template>
-<style scoped>
-.columna-centrada {
-  text-align: center;
-}
-</style>
-
 <script>
 import {Money} from 'v-money'
 var self = this;
@@ -187,10 +201,17 @@ export default {
       paginaActual: 1,
       estados: [],
       tipoProductos: [],
+      tipoProductosActual: [],
+      productosDependientes: [],
       productosSeleccionados: []
     };
   },
+  watch: {
+  },
   methods: {
+    changeValueInput(a, b) {
+      this.$forceUpdate();
+    },
     cargarFormulario: function(obj, operacion) {
       this.tipoOperacion = operacion;
       this.objeto = obj;
@@ -219,7 +240,7 @@ export default {
           idtipoproducto: obj.idtipoproducto,
           descripciontipoproducto: obj.descripciontipoproducto
         };
-        this.listarDependenciaProducto(obj.id)
+        this.listarDependenciaProducto(obj.id);
       }
       this.showModal = true;
     },
@@ -250,8 +271,8 @@ export default {
       this.$loader.open({ message: "Cargando ..." });
       var self = this;
       var frm = {};
-      this.$http.get("ws/tipoproducto/", frm).then(resp => {
-          self.tipoProductos = resp.data;
+      this.$http.post("ws/productotipoproducto/", frm).then(resp => {
+          self.tipoProductos = resp.data.tiposProducto;
           self.$loader.close();
         }).catch(resp => {
           self.$loader.close();
@@ -269,7 +290,8 @@ export default {
         params: {idpadre: idpadre}
       };
       this.$http.get("ws/dependenciaproducto/", frm).then(resp => {
-          self.productosSeleccionados = resp.data;
+          self.productosDependientes = resp.data;
+          self.setValuesInputs();
           self.$loader.close();
         }).catch(resp => {
           self.$loader.close();
@@ -300,13 +322,52 @@ export default {
           }
         });
     },
+    getArrayRefs() {
+      return Object.keys(this.$refs);
+    },
+    setValuesInputs() {
+      const self = this;
+      this.tipoProductosActual = [...this.tipoProductos]; 
+      this.tipoProductosActual.forEach((tipoProducto, tIndex) => {
+        tipoProducto.productos.forEach((producto, pIndex) => {
+          const productoDependiente = self.productosDependientes.find((prod) => {
+            return (producto.id === prod.idhijo)
+          });
+          
+          if (productoDependiente) {
+            producto.cantidadDependiente = productoDependiente.cantidad;
+          } else {
+            producto.cantidadDependiente = 0;
+          }
+        });
+      });
+    },
+    getValuesInputs() {
+      const self = this;
+      const hijos = [];
+      this.tipoProductosActual.forEach((tipoProducto, tIndex) => {
+        tipoProducto.productos.forEach((producto, pIndex) => {
+          if (producto.cantidadDependiente > 0) {
+            hijos.push({
+              nombretipoproducto: tipoProducto.descripcion,
+              nombre: producto.descripcion,
+              cantidad: producto.cantidadDependiente,
+              idhijo: producto.id
+            });
+          }
+        });
+      });
+      return hijos;
+    },
     guardarCambios: function() {
+      const hijos = this.getValuesInputs();
+
       if(!this.validarCampos()) {
         return false
       }
       var self = this;
       self.$set(self.objeto, "token", window.localStorage.getItem("token"));
-      self.$set(self.objeto, "hijos", self.productosSeleccionados);
+      self.$set(self.objeto, "hijos", hijos);
       this.$alertify
         .confirmWithTitle(
           "Modificar",
@@ -351,3 +412,18 @@ export default {
   }
 };
 </script>
+<style scoped>
+  .columna-centrada {
+    text-align: center;
+  }
+  .item-selected {
+    color: red;
+    font-weight: bold;
+    display: block;
+    margin: 0px !important;
+  }
+  div > div > input:not([value="0"]) {
+    color: red;
+    font-weight: bold;
+  }
+</style>

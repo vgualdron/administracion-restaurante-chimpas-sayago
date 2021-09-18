@@ -146,6 +146,13 @@ export default {
     return {
       campos: [
         {
+          key: "descripciontipoproducto",
+          label: "Tipo producto",
+          sortable: true,
+          thStyle: "text-align:center;",
+          tdClass: "columna-centrada"
+        },
+        {
           key: "descripcion",
           label: "Descripción",
           sortable: true,
