@@ -206,7 +206,7 @@ export default {
           "Seguro que desea generar el informe?",
           function() {
             let html = self.$refs.htmlCierreCaja.innerHTML;
-
+            // html = '<h4 style="text-align: center;">Cierre de caja del dia 2021-09-18</h4>';
             var form = document.createElement("form");
             form.setAttribute("method", "post");
             form.setAttribute("action", process.env.VUE_APP_URL + "dompdf/dompdf/www/generar-pdf.php");
