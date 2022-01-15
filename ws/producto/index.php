@@ -58,7 +58,8 @@ try {
                                     FROM pinchetas_restaurante.producto prod
                                     inner join pinchetas_restaurante.tipoproducto tipr on (tipr.tipr_id = prod.tipr_id)
                                     where prod.prod_estado = 'ACTIVO'
-                                    order by prod.prod_cantidad asc;  ");
+                                    or prod.prod_estado = 'ACTIVO SOLO INVENTARIO'
+                                    order by tipr.tipr_orden asc, prod.prod_cantidad asc;  ");
         $sql->execute();
         $sql->setFetchMode(PDO::FETCH_ASSOC);
         header("HTTP/1.1 200 OK");

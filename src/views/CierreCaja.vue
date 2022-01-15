@@ -50,29 +50,29 @@
               <template v-if="items && items.length > 0">
                 <h4 style='text-align:center'>Cierre de caja del dia {{filtro}} </h4>
 
-                <table style='width:100%;'  cellspacing='0' cellpadding='0'>
+                <table v-for="(item, i) in items" :key="'table_item_' + i"  style='width:100%; margin-top: 20px;'  cellspacing='0' cellpadding='0'>
+                  <tr style='border: solid 1px black;'>
+                    <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;' colspan="4"> {{ item.descripcion }} </th>
+                  </tr>
                   <tr style='border: solid 1px black;'>
                     <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>PRODUCTO</th>
                     <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>PRECIO</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>CANTIDAD</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL</th>
+                    <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>CANTIDAD</th>
+                    <th style='width:25%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL</th>
                   </tr>
-
-                  <tr v-for="(item, i) in items" :key="'tr_item_' + i" style='border: solid 1px black;'>
-                    <td style='width:40%;border: solid 1px black;padding: 5px;text-align:center;'>{{item.prod_descripcion}}</td>
-                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(item.prod_precio)}}</td>
-                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{item.cantidad}}</td>
-                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(item.total)}}</td>
+                  <tr v-for="(prod, i) in item.productos" :key="'tr_item_' + i" style='border: solid 1px black;'>
+                    <td style='width:40%;border: solid 1px black;padding: 5px;text-align:center;'>{{prod.descripcion}}</td>
+                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(prod.precio)}}</td>
+                    <td style='width:15%;border: solid 1px black;padding: 5px;text-align:center;'>{{prod.cantidadT}}</td>
+                    <td style='width:25%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(prod.totalT)}}</td>
                   </tr>
                   <tr style='border: solid 1px black;'>
-                    <td style='width:40%; padding: 10px;'></td>
-                    <td style='width:20%; padding: 10px;'></td>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>SUB. TOTAL</td>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>{{getTotalVentas()}}</td>
+                    <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;' colspan="2"></th>
+                    <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'> {{ item.cantidad }} </th>
+                    <th style='width:25%; border: solid 1px black; padding: 10px;text-align:center;'> {{ format(item.total) }} </th>
                   </tr>
-
                 </table>
-                    
+
                 <br>
 
                 <table style='width:100%;'  cellspacing='0' cellpadding='0'>
@@ -95,14 +95,18 @@
 
                 <table style='width:100%;'  cellspacing='0' cellpadding='0'>
                   <tr style='border: solid 1px black;'>
-                    <th style='width:33%; border: solid 1px black; padding: 10px;text-align:center;'>INGRESO</th>
-                    <th style='width:33%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
-                    <th style='width:33%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL EN CAJA</th>
+                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>INGRESO</th>
+                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TARJETA</th>
+                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>EFECTIVO</th>
+                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
+                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL EN CAJA</th>
                   </tr>
                   <tr style='border: solid 1px black;'>
-                    <th style='width:33%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalVentas()}} </th>
-                    <th style='width:33%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalGastos()}} </th>
-                    <th style='width:33%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalCierre()}} </th>
+                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalVentas()}} </th>
+                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(totalTarjeta) }} </th>
+                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(totalEfectivo) }} </th>
+                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalGastos()}} </th>
+                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalCierre()}} </th>
                   </tr>
                 </table>
               </template>
@@ -137,7 +141,10 @@ export default {
       filtro: "",
       porPagina: 20,
       paginaActual: 1,
-      limpiarBase: "SI"
+      limpiarBase: "SI",
+      totalEfectivo: '0',
+      totalTarjeta: '0',
+      productosPizza: []
     };
   },
   methods: {
@@ -164,7 +171,10 @@ export default {
         }
       };
       this.$http.get("ws/cierrecaja/", frm).then(resp => {
-          self.items = resp.data;
+          self.items = resp.data.tiposProducto;
+          self.productosPizza = resp.data.productosPizza;
+          self.totalEfectivo = resp.data.totalEfectivo;
+          self.totalTarjeta = resp.data.totalTarjeta;
           self.$loader.close();
         })
         .catch(resp => {
@@ -245,6 +255,8 @@ export default {
       var frm = {
         fecha: this.filtro,
         items: this.items,
+        totalEfectivo: this.totalEfectivo,
+        totalTarjeta: this.totalTarjeta,
         gastos: this.gastos,
         titulo: 'Cierre de caja del dia ' + this.filtro
       };
@@ -311,9 +323,83 @@ export default {
       this.gastos.forEach(gasto => {
         totalGastos = totalGastos + parseInt(gasto.valor);
       });
-      let total = totalVentas - totalGastos;
+      let total = totalVentas - totalGastos - this.totalTarjeta;
       return this.format(total.toString());
     } 
+  },
+  watch: {
+    productosPizza: function(valor) {
+      console.log(valor);
+      let productos = [];
+
+      if (!valor) {
+        return;
+      }
+
+      valor.map((prod) => {
+        let producto = productos.find((p) => {
+          return p.id == prod.idtipoproducto 
+        });
+
+        let multiplo = 1;
+        if (prod.idtipoproducto2) {
+          multiplo = 0.5;
+        }
+
+        if (!producto) {
+          let objProd = {
+            id: prod.idtipoproducto,
+            descripcion: prod.descripciontipoproducto,
+            precio: '',
+            cantidadT: multiplo * prod.cantidad,
+            totalT: (multiplo * prod.precio * prod.cantidad).toString()
+          };
+          productos.push(objProd);
+        } else {
+          producto.cantidadT = producto.cantidadT + (multiplo * prod.cantidad)
+          producto.totalT = parseInt(producto.totalT) + (multiplo * prod.precio * prod.cantidad) + ''
+        }
+      });
+
+      valor.map((prod) => {
+        let multiplo = 1;
+
+        if (prod.idtipoproducto2) {
+          multiplo = 0.5;
+          
+          let producto2 = productos.find((p) => {
+            return p.id == prod.idtipoproducto2
+          });
+
+          if (!producto2) {
+            let objProd = {
+              id: prod.idtipoproducto2,
+              descripcion: prod.descripciontipoproducto2,
+              precio: '',
+              cantidadT: multiplo * prod.cantidad,
+              totalT: (multiplo * prod.precio * prod.cantidad).toString()
+            };
+            productos.push(objProd);
+          } else {
+            producto2.cantidadT = producto2.cantidadT + (multiplo * prod.cantidad)
+            producto2.totalT = parseInt(producto2.totalT) + (multiplo * prod.precio * prod.cantidad) + ''
+          }
+        }
+      });
+
+      let suma = 0;
+
+      productos.map(function(p) { 
+        suma += parseInt(p.totalT)
+      });
+      
+      let objTipo = {
+        total: suma + '',
+        descripcion: 'PIZZAS',
+        productos: productos
+      };
+      this.items.push(objTipo);
+    }
   },
   created: function() {
     this.date = new Date();

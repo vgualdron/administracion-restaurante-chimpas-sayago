@@ -16,11 +16,11 @@
                   <!-- Attach Right button -->
                   <b-input-group-append>
                     <b-button variant="primary" :disabled="!filtro" @click.stop="filtro = ''">x</b-button>
-                    <b-btn
+                    <!-- <b-btn
                       class="ml-3"
                       @click.stop="cargarFormulario(null,'Agregar')"
                       variant="primary"
-                    >Nuevo</b-btn>
+                    >Nuevo</b-btn> -->
                   </b-input-group-append>
                 </b-input-group>
               </b-form-group>
