@@ -208,7 +208,8 @@ export default {
       var frm = {
         params: {
           fecha: this.filtro,
-          ventas: 'SI'
+          ventas: 'SI',
+          controlFiscal: 'SI'
         }
       };
       this.$http.get("ws/cierrecaja/", frm).then(resp => {
