@@ -45,6 +45,7 @@
     "vue-select": "^2.5.1",
     "vue-signature-pad": "^0.5.0",
     "vue-upload-component": "^2.8.9",
+    "vue2-daterange-picker": "^0.6.8",
     "vuelidate": "^0.7.4",
     "vuex": "^3.0.1"
   },

@@ -7,17 +7,25 @@
             <b-col cols="12">
               <b-form-group>
                 <b-input-group cols="9">
-                  <b-form-input
+                  <!--<b-form-input
                     type="date"
                     v-model="filtro"
                     placeholder="Filtrar Búsqueda"
-                    autocomplete="text"></b-form-input>
+                    autocomplete="text"></b-form-input>-->
+                    <date-range-picker
+                      ref="picker"
+                      :locale-data="{ firstDay: 1, format: 'dd-mm-yyyy' }"
+                      v-model="filtro"
+                      :startDate="startDate" 
+                      :endDate="endDate"
+              >
+              </date-range-picker>
                   <!-- Attach Right button -->
                   <b-input-group-append>
                     <b-button variant="primary" :disabled="!filtro" @click.stop="filtro = ''">x</b-button>
                     <b-btn
                       class="ml-3"
-                      @click.stop="consultarCierreCaja(); consultarGastos();"
+                      @click.stop="consultar();"
                       variant="primary">
                       Consultar </b-btn>
                   </b-input-group-append>
@@ -27,7 +35,7 @@
           </b-row>
 
           <b-row class="mt-5 mb-2">
-            <b-col cols="12" class="text-center" v-if="items && items.length > 0">
+            <b-col cols="12" class="text-center" v-if="allItems && allItems.length > 0">
               <b-form-checkbox
                 id="checkbox-1"
                 v-model="limpiarBase"
@@ -45,93 +53,97 @@
             </b-col>
           </b-row>   
 
-          <b-row class="mt-1 mb-2">
-            <b-col cols="12" ref="htmlCierreCaja">
-              <template v-if="items && items.length > 0">
-                <h4 style='text-align:center'>Cierre de caja del dia {{filtro}} </h4>
+          <template v-if="allItems && allItems.length > 0">
+            <div ref="htmlCierreCaja">
+              <b-row v-for="(allItem, k) in allItems" :key="'fecha_table_item_' + k" class="mt- mb-2">
+                <b-col cols="12" class="mt-5">
+                  <template v-if="allItem.items && allItem.items.length > 0">
+                    <h4 style='text-align:center'>Cierre de caja del dia {{ allItem.fecha }} </h4>
 
-                <table v-for="(item, i) in items" :key="'table_item_' + i"  style='width:100%; margin-top: 20px;'  cellspacing='0' cellpadding='0'>
-                  <tr style='border: solid 1px black;'>
-                    <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;' colspan="4"> {{ item.descripcion }} </th>
-                  </tr>
-                  <tr style='border: solid 1px black;'>
-                    <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>PRODUCTO</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>PRECIO</th>
-                    <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>CANTIDAD</th>
-                    <th style='width:25%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL</th>
-                  </tr>
-                  <tr v-for="(prod, i) in item.productos" :key="'tr_item_' + i" style='border: solid 1px black;'>
-                    <td style='width:40%;border: solid 1px black;padding: 5px;text-align:center;'>{{prod.descripcion}}</td>
-                    <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(prod.precio)}}</td>
-                    <td style='width:15%;border: solid 1px black;padding: 5px;text-align:center;'>{{prod.cantidadT}}</td>
-                    <td style='width:25%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(prod.totalT)}}</td>
-                  </tr>
-                  <tr style='border: solid 1px black;'>
-                    <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;' colspan="2"></th>
-                    <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'> {{ item.cantidad }} </th>
-                    <th style='width:25%; border: solid 1px black; padding: 10px;text-align:center;'> {{ format(item.total) }} </th>
-                  </tr>
-                </table>
+                    <table v-for="(item, i) in allItem.items" :key="'table_item_' + i"  style='width:100%; margin-top: 20px;'  cellspacing='0' cellpadding='0'>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;' colspan="4"> {{ item.descripcion }} </th>
+                      </tr>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;'>PRODUCTO</th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>PRECIO</th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>CANTIDAD</th>
+                        <th style='width:25%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL</th>
+                      </tr>
+                      <tr v-for="(prod, i) in item.productos" :key="'tr_item_' + i" style='border: solid 1px black;'>
+                        <td style='width:40%;border: solid 1px black;padding: 5px;text-align:center;'>{{prod.descripcion}}</td>
+                        <td style='width:20%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(prod.precio)}}</td>
+                        <td style='width:15%;border: solid 1px black;padding: 5px;text-align:center;'>{{prod.cantidadT}}</td>
+                        <td style='width:25%;border: solid 1px black;padding: 5px;text-align:center;'>{{format(prod.totalT)}}</td>
+                      </tr>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:40%; border: solid 1px black; padding: 10px;text-align:center;' colspan="2"></th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'> {{ item.cantidad }} </th>
+                        <th style='width:25%; border: solid 1px black; padding: 10px;text-align:center;'> {{ format(item.total) }} </th>
+                      </tr>
+                    </table>
 
-                <br>
+                    <br>
 
-                <table style='width:100%;'  cellspacing='0' cellpadding='0'>
-                  <tr style='border: solid 1px black;'>
-                    <th style='width:70%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
-                    <th style='width:30%; border: solid 1px black; padding: 10px;text-align:center;'>COSTO</th>
-                  </tr>
+                    <table style='width:100%;'  cellspacing='0' cellpadding='0'>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:70%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
+                        <th style='width:30%; border: solid 1px black; padding: 10px;text-align:center;'>COSTO</th>
+                      </tr>
 
-                  <tr v-for="(gasto, g) in gastos" :key="'tr_gasto_' + g" style='border: solid 1px black;'>
-                    <td style='border: solid 1px black;padding: 5px;text-align:center;'>{{gasto.descripcion}}</td>
-                   <td style='border: solid 1px black;padding: 5px;text-align:center;'>{{format(gasto.valor)}}</td>
-                  </tr>
-                  <tr style='border: solid 1px black;'>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>SUB. TOTAL</td>
-                    <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>{{getTotalGastos()}}</td>
-                  </tr>
-                </table>
+                      <tr v-for="(gasto, g) in allItem.gastos" :key="'tr_gasto_' + g" style='border: solid 1px black;'>
+                        <td style='border: solid 1px black;padding: 5px;text-align:center;'>{{gasto.descripcion}}</td>
+                      <td style='border: solid 1px black;padding: 5px;text-align:center;'>{{format(gasto.valor)}}</td>
+                      </tr>
+                      <tr style='border: solid 1px black;'>
+                        <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>SUB. TOTAL</td>
+                        <td style='width:20%; border: solid 1px black; padding: 10px;text-align:center;font-weight:bold;'>{{ getTotalGastos(allItem.gastos) }}</td>
+                      </tr>
+                    </table>
 
-                <br>
+                    <br>
 
-                <table style='width:100%;'  cellspacing='0' cellpadding='0'>
-                  <tr style='border: solid 1px black;'>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>INGRESO</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TARJETA</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>EFECTIVO</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
-                    <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL EN CAJA</th>
-                  </tr>
-                  <tr style='border: solid 1px black;'>
-                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalVentas()}} </th>
-                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(totalTarjeta) }} </th>
-                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(totalEfectivo) }} </th>
-                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalGastos()}} </th>
-                    <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{getTotalCierre()}} </th>
-                  </tr>
-                </table>
-              </template>
-              <b-alert v-else show variant="danger">No hay items para hacer cierre de caja. Seleccione otra fecha y genere el cierre de caja.</b-alert>
-            </b-col>
-          </b-row>
+                    <table style='width:100%;'  cellspacing='0' cellpadding='0'>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>INGRESO</th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TARJETA</th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>EFECTIVO</th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL EN CAJA</th>
+                      </tr>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ getTotalVentas(allItem.items) }} </th>
+                        <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(allItem.totalTarjeta) }} </th>
+                        <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(allItem.totalEfectivo) }} </th>
+                        <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ getTotalGastos(allItem.gastos) }} </th>
+                        <th style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ getTotalCierre(allItem.items, allItem.gastos, allItem.totalTarjeta) }} </th>
+                      </tr>
+                    </table>
+                  </template>
+                  <b-alert v-else show variant="danger">No hay items para hacer cierre de caja. Seleccione otra fecha y genere el cierre de caja.</b-alert>
+                </b-col>
+              </b-row>
+            </div>
+          </template>
           
         </b-card>
       </b-col>
     </b-row>
   </div>
 </template>
-<style scoped>
-.columna-centrada {
-  text-align: center;
-}
-</style>
-
 <script>
-var self = this;
+import DateRangePicker from 'vue2-daterange-picker';
+//you need to import the CSS manually
+import 'vue2-daterange-picker/dist/vue2-daterange-picker.css';
+// import axios from 'axios';
 export default {
   name: "CierreCaja",
+  components: { DateRangePicker },
   data: function() {
     return {
       date: null,
+      allItems: [],
+      fechas: [],
       items: [],
       gastos: [],
       objeto: null,
@@ -144,10 +156,95 @@ export default {
       limpiarBase: "SI",
       totalEfectivo: '0',
       totalTarjeta: '0',
-      productosPizza: []
+      productosPizza: [],
+      startDate: '2021-09-05',
+      endDate: '2030-09-15',
     };
   },
   methods: {
+    addProductosPizza: function(valor) {
+      let productos = [];
+
+      if (!valor) {
+        return;
+      }
+
+      valor.map((prod) => {
+        let producto = productos.find((p) => {
+          return p.id == prod.idtipoproducto 
+        });
+
+        let multiplo = 1;
+        if (prod.idtipoproducto2) {
+          multiplo = 0.5;
+        }
+
+        if (!producto) {
+          let objProd = {
+            id: prod.idtipoproducto,
+            descripcion: prod.descripciontipoproducto,
+            precio: '',
+            cantidadT: multiplo * prod.cantidad,
+            totalT: (multiplo * prod.precio * prod.cantidad).toString()
+          };
+          productos.push(objProd);
+        } else {
+          producto.cantidadT = producto.cantidadT + (multiplo * prod.cantidad)
+          producto.totalT = parseInt(producto.totalT) + (multiplo * prod.precio * prod.cantidad) + ''
+        }
+      });
+
+      valor.map((prod) => {
+        let multiplo = 1;
+
+        if (prod.idtipoproducto2) {
+          multiplo = 0.5;
+          
+          let producto2 = productos.find((p) => {
+            return p.id == prod.idtipoproducto2
+          });
+
+          if (!producto2) {
+            let objProd = {
+              id: prod.idtipoproducto2,
+              descripcion: prod.descripciontipoproducto2,
+              precio: '',
+              cantidadT: multiplo * prod.cantidad,
+              totalT: (multiplo * prod.precio * prod.cantidad).toString()
+            };
+            productos.push(objProd);
+          } else {
+            producto2.cantidadT = producto2.cantidadT + (multiplo * prod.cantidad)
+            producto2.totalT = parseInt(producto2.totalT) + (multiplo * prod.precio * prod.cantidad) + ''
+          }
+        }
+      });
+
+      let suma = 0;
+
+      productos.map(function(p) { 
+        suma += parseInt(p.totalT)
+      });
+      
+      let objTipo = {
+        total: suma + '',
+        descripcion: 'PIZZAS',
+        productos: productos
+      };
+      return objTipo;
+    },
+    getDatesOnRange({ startDate, endDate}){ 
+      const fechaInicio = new Date(startDate);
+      const fechaFin    = new Date(endDate);
+      let fechas = [];
+
+      while(fechaFin >= fechaInicio) {
+        const fecha = (fechaInicio.getFullYear() + '/' + (fechaInicio.getMonth() + 1) + '/' + fechaInicio.getDate());
+        fechaInicio.setDate(fechaInicio.getDate() + 1);
+        fechas.push(fecha);
+      }
+      return fechas;
+    },
     format: function (input){
       var num = input.replace(/\./g,'');
       if(!isNaN(num)){
@@ -157,56 +254,58 @@ export default {
       }
       return 'X';
     },
-    consultarCierreCaja: function() {
+    consultar: async function() {
+      let self = this;
       if (!this.filtro) {
         this.$toast.error("Debe de seleccionar la fecha para generar el cierre de caja");
         return false;
       }
-      this.$loader.open({ message: "Cargando ..." });
-      var self = this;
-      var frm = {
-        params: {
-          fecha: this.filtro,
-          ventas: 'SI'
-        }
-      };
-      this.$http.get("ws/cierrecaja/", frm).then(resp => {
-          self.items = resp.data.tiposProducto;
-          self.productosPizza = resp.data.productosPizza;
-          self.totalEfectivo = resp.data.totalEfectivo;
-          self.totalTarjeta = resp.data.totalTarjeta;
-          self.$loader.close();
-        })
-        .catch(resp => {
-          self.$loader.close();
-          if (resp.data && resp.data.mensaje) {
-            self.$toast.error(resp.data.mensaje);
-          } else {
-            self.$toast.error("No se pudo obtener los items para hacer cierre de caja.");
+      
+      this.fechas = this.getDatesOnRange(this.filtro);
+      self.allItems = [];
+
+      for (let index = 0; index < this.fechas.length; index++) {
+        const fecha = this.fechas[index];
+        let allItem = {};
+        this.$loader.open({ message: "Cargando ..." });
+        let frmCierre = {
+          params: {
+            fecha: fecha,
+            ventas: 'SI'
+          }
+        };
+        await this.consultarCierreCaja(frmCierre).then((response) => {
+          const data = response.data;
+          if (data.tiposProducto && data.tiposProducto.length > 0) {
+            allItem = {
+              fecha: fecha,
+              items: data.tiposProducto,
+              productosPizza: data.productosPizza,
+              totalEfectivo: data.totalEfectivo,
+              totalTarjeta: data.totalTarjeta,
+            };
+            allItem.items.push(self.addProductosPizza(data.productosPizza));
           }
         });
+
+        var frmGastos = {
+          params: {
+            fecha: fecha,
+            gastos: 'SI'
+          }
+        };
+
+        await this.consultarCierreCaja(frmGastos).then((response) => {
+          const data = response.data;
+          allItem.gastos = data
+        });
+
+        self.allItems.push(allItem);
+        self.$loader.close();
+      }
     },
-    consultarGastos: function() {
-      this.$loader.open({ message: "Cargando ..." });
-      var self = this;
-      var frm = {
-        params: {
-          fecha: this.filtro,
-          gastos: 'SI'
-        }
-      };
-      this.$http.get("ws/cierrecaja/", frm).then(resp => {
-          self.gastos = resp.data;
-          self.$loader.close();
-        })
-        .catch(resp => {
-          self.$loader.close();
-          if (resp.data && resp.data.mensaje) {
-            self.$toast.error(resp.data.mensaje);
-          } else {
-            self.$toast.error("No se pudo obtener los gastos para hacer cierre de caja.");
-          }
-        });
+    consultarCierreCaja: async function(frm) {
+      return await this.$http.get("ws/cierrecaja/", frm);
     },
     generarInformeCierreCaja: function() {
       var self = this;
@@ -299,107 +398,38 @@ export default {
       this.totalFilas = itemsFiltrados.length;
       this.paginaActual = 1;
     },
-    getTotalVentas: function () {
+    getTotalVentas: function (items) {
       let total = 0;
-      this.items.forEach(item => {
+      items.forEach(item => {
         total = total + parseInt(item.total);
       });
       return this.format(total.toString());
     },
-    getTotalGastos: function () {
+    getTotalGastos: function (gastos) {
+      if (gastos && gastos.length <= 0) {
+        return 0;
+      }
       let total = 0;
-      this.gastos.forEach(gasto => {
+      gastos.forEach(gasto => {
         total = total + parseInt(gasto.valor);
       });
       return this.format(total.toString());
     },
-    getTotalCierre: function () {
+    getTotalCierre: function (items, gastos, totalTarjeta) {
       let totalVentas = 0;
-      this.items.forEach(item => {
+      items.forEach(item => {
         totalVentas = totalVentas + parseInt(item.total);
       });
 
       let totalGastos = 0;
-      this.gastos.forEach(gasto => {
+      gastos.forEach(gasto => {
         totalGastos = totalGastos + parseInt(gasto.valor);
       });
-      let total = totalVentas - totalGastos - this.totalTarjeta;
+      let total = totalVentas - totalGastos - totalTarjeta;
       return this.format(total.toString());
     } 
   },
   watch: {
-    productosPizza: function(valor) {
-      console.log(valor);
-      let productos = [];
-
-      if (!valor) {
-        return;
-      }
-
-      valor.map((prod) => {
-        let producto = productos.find((p) => {
-          return p.id == prod.idtipoproducto 
-        });
-
-        let multiplo = 1;
-        if (prod.idtipoproducto2) {
-          multiplo = 0.5;
-        }
-
-        if (!producto) {
-          let objProd = {
-            id: prod.idtipoproducto,
-            descripcion: prod.descripciontipoproducto,
-            precio: '',
-            cantidadT: multiplo * prod.cantidad,
-            totalT: (multiplo * prod.precio * prod.cantidad).toString()
-          };
-          productos.push(objProd);
-        } else {
-          producto.cantidadT = producto.cantidadT + (multiplo * prod.cantidad)
-          producto.totalT = parseInt(producto.totalT) + (multiplo * prod.precio * prod.cantidad) + ''
-        }
-      });
-
-      valor.map((prod) => {
-        let multiplo = 1;
-
-        if (prod.idtipoproducto2) {
-          multiplo = 0.5;
-          
-          let producto2 = productos.find((p) => {
-            return p.id == prod.idtipoproducto2
-          });
-
-          if (!producto2) {
-            let objProd = {
-              id: prod.idtipoproducto2,
-              descripcion: prod.descripciontipoproducto2,
-              precio: '',
-              cantidadT: multiplo * prod.cantidad,
-              totalT: (multiplo * prod.precio * prod.cantidad).toString()
-            };
-            productos.push(objProd);
-          } else {
-            producto2.cantidadT = producto2.cantidadT + (multiplo * prod.cantidad)
-            producto2.totalT = parseInt(producto2.totalT) + (multiplo * prod.precio * prod.cantidad) + ''
-          }
-        }
-      });
-
-      let suma = 0;
-
-      productos.map(function(p) { 
-        suma += parseInt(p.totalT)
-      });
-      
-      let objTipo = {
-        total: suma + '',
-        descripcion: 'PIZZAS',
-        productos: productos
-      };
-      this.items.push(objTipo);
-    }
   },
   created: function() {
     this.date = new Date();
@@ -414,10 +444,22 @@ export default {
     if (mes < 10) {
       mes = '0' + mes;
     }
-    this.filtro = ano + '-' + mes + '-' + dia;
+    const currentDate = ano + '-' + mes + '-' + dia;
+    this.filtro = {
+      startDate: currentDate,
+      endDate: currentDate
+    };
   },
   mounted: function() {
     this.$loader.close();
   }
 };
 </script>
+<style scoped>
+  .vue-daterange-picker {
+    width: 85%;
+  }
+  .columna-centrada {
+    text-align: center;
+  }
+</style>
