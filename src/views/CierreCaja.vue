@@ -14,7 +14,8 @@
                     autocomplete="text"></b-form-input>-->
                     <date-range-picker
                       ref="picker"
-                      :locale-data="{ firstDay: 1, format: 'dd-mm-yyyy' }"
+                      :locale-data="localeData"
+                      :always-show-calendars="true"
                       v-model="filtro"
                       :startDate="startDate" 
                       :endDate="endDate"
@@ -159,6 +160,18 @@ export default {
       productosPizza: [],
       startDate: '2021-09-05',
       endDate: '2030-09-15',
+      localeData: {
+        direction: 'ltr',
+        firstDay: 1,
+        format: 'dd-mm-yyyy',
+        separator: ' - ',
+        applyLabel: 'Aplicar',
+        cancelLabel: 'Cancelar',
+        weekLabel: 'S',
+        customRangeLabel: 'Custom',
+        daysOfWeek: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+        monthNames: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+    }
     };
   },
   methods: {
