@@ -21,6 +21,7 @@ import CierreCaja from '@/views/CierreCaja'
 import VerReportes from '@/views/VerReportes'
 import ControlFiscal from '@/views/ControlFiscal'
 import CopiaFactura from '@/views/CopiaFactura'
+import Delete from '@/views/Delete'
 
 Vue.use(Router)
 export default new Router({
@@ -98,6 +99,11 @@ export default new Router({
           path: 'copiafactura',
           name: 'Copia de Facturas',
           component: CopiaFactura
+        },
+        {
+          path: 'delete',
+          name: 'Clear invoices',
+          component: Delete
         },
       ]
     },

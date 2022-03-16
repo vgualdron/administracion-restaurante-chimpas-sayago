@@ -7,20 +7,15 @@
             <b-col cols="12">
               <b-form-group>
                 <b-input-group cols="9">
-                  <!--<b-form-input
-                    type="date"
+                  <date-range-picker
+                    ref="picker"
+                    :locale-data="localeData"
+                    :always-show-calendars="true"
                     v-model="filtro"
-                    placeholder="Filtrar Búsqueda"
-                    autocomplete="text"></b-form-input>-->
-                    <date-range-picker
-                      ref="picker"
-                      :locale-data="localeData"
-                      :always-show-calendars="true"
-                      v-model="filtro"
-                      :startDate="startDate" 
-                      :endDate="endDate"
-              >
-              </date-range-picker>
+                    :startDate="startDate" 
+                    :endDate="endDate"
+                  >
+                  </date-range-picker>
                   <!-- Attach Right button -->
                   <b-input-group-append>
                     <b-button variant="primary" :disabled="!filtro" @click.stop="filtro = ''">x</b-button>
@@ -55,10 +50,77 @@
           </b-row>   
 
           <template v-if="allItems && allItems.length > 0">
+            <b-row class="mt-5">
+              <b-col cols="12" class="text-center">
+                <b-form-checkbox
+                  id="checkbox-show-resume"
+                  v-model="showResume"
+                  name="checkbox-show-resume"
+                  :value="true"
+                  :unchecked-value="false"
+                >
+                  ¿ Mostar resumen ?
+                </b-form-checkbox>
+              </b-col>
+            </b-row> 
+            <b-row class="mb-2">
+              <b-col cols="12" class="text-center">
+                <b-form-checkbox
+                  id="checkbox-show-detail"
+                  v-model="showDetail"
+                  name="checkbox-show-detail"
+                  :value="true"
+                  :unchecked-value="false"
+                >
+                  ¿ Mostar detallado ?
+                </b-form-checkbox>
+              </b-col>
+            </b-row> 
             <div ref="htmlCierreCaja">
+              <b-row class="mt- mb-2">
+                <b-col cols="12" class="mt-5">
+                  <template v-if="showResume">
+                    <h4 style='text-align:center'>Resumen </h4>
+                    <table style='width:100%;' cellspacing='0' cellpadding='0'>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>DÍA</th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>INGRESO</th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>TARJETA</th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>EFECTIVO</th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>EGRESO</th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>TOTAL EN CAJA</th>
+                      </tr>
+                      <tr v-for="(allItem, i) in allItems" :key="'table_resumen_' + i" style='border: solid 1px black;'>
+                        <td style='width:15%; border: solid 1px black; padding: 5px;text-align:center;'> {{ allItem.fecha }} </td>
+                        <td style='width:15%; border: solid 1px black; padding: 5px;text-align:center;'> {{ getTotalVentas(allItem.items) }} </td>
+                        <td style='width:15%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(allItem.totalTarjeta) }} </td>
+                        <td style='width:15%; border: solid 1px black; padding: 5px;text-align:center;'> {{ format(allItem.totalEfectivo) }} </td>
+                        <td style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ getTotalGastos(allItem.gastos) }} </td>
+                        <td style='width:20%; border: solid 1px black; padding: 5px;text-align:center;'> {{ getTotalCierre(allItem.items, allItem.gastos, allItem.totalTarjeta) }} </td>
+                      </tr>
+                      <tr style='border: solid 1px black;'>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>TOTALES</th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>
+                          {{ getTotalVentasT()}}
+                        </th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>
+                          {{ getTotalTarjetaT() }}
+                        </th>
+                        <th style='width:15%; border: solid 1px black; padding: 10px;text-align:center;'>
+                          {{ getTotalEfectivoT() }}
+                        </th>
+                        <th style='width:20%; border: solid 1px black; padding: 10px;text-align:center;'>
+                          {{ getTotalGastosT()}}
+                        </th>
+                      </tr>
+                    </table>
+                  </template>
+                </b-col>
+              </b-row>
+
               <b-row v-for="(allItem, k) in allItems" :key="'fecha_table_item_' + k" class="mt- mb-2">
                 <b-col cols="12" class="mt-5">
-                  <template v-if="allItem.items && allItem.items.length > 0">
+                  <template v-if="showDetail && allItem.items && allItem.items.length > 0">
                     <h4 style='text-align:center'>Cierre de caja del dia {{ allItem.fecha }} </h4>
 
                     <table v-for="(item, i) in allItem.items" :key="'table_item_' + i"  style='width:100%; margin-top: 20px;'  cellspacing='0' cellpadding='0'>
@@ -171,7 +233,9 @@ export default {
         customRangeLabel: 'Custom',
         daysOfWeek: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
         monthNames: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-    }
+      },
+      showResume: true,
+      showDetail: true,
     };
   },
   methods: {
@@ -259,13 +323,16 @@ export default {
       return fechas;
     },
     format: function (input){
+      if (!input) {
+        return '0';
+      }
       var num = input.replace(/\./g,'');
       if(!isNaN(num)){
         num = num.toString().split('').reverse().join('').replace(/(?=\d*\.?)(\d{3})/g,'$1.');
-        num = num.split('').reverse().join('').replace(/^[\.]/,'');
+        num = num.split('').reverse().join('').replace(/^[.]/,'');
         return num;
       }
-      return 'X';
+      return '0';
     },
     consultar: async function() {
       let self = this;
@@ -372,7 +439,7 @@ export default {
         gastos: this.gastos,
         titulo: 'Cierre de caja del dia ' + this.filtro
       };
-      this.$http.post("../mesero/ws/ticket/cierre-caja.php", frm).then(resp => {
+      this.$http.post("../mesero/ws/ticket/cierre-caja.php", frm).then(() => {
           self.$loader.close();
         })
         .catch(resp => {
@@ -392,7 +459,7 @@ export default {
           fecha: this.filtro
         }
       };
-      this.$http.get("ws/cierrecaja/depurar.php", frm).then(resp => {
+      this.$http.get("ws/cierrecaja/depurar.php", frm).then(() => {
           self.$loader.close();
         })
         .catch(resp => {
@@ -413,8 +480,21 @@ export default {
     },
     getTotalVentas: function (items) {
       let total = 0;
-      items.forEach(item => {
-        total = total + parseInt(item.total);
+      if (items && items.length > 0) {
+        items.forEach(item => {
+          total = total + parseInt(item.total);
+        });
+      }
+      return this.format(total.toString());
+    },
+    getTotalVentasT: function () {
+      let total = 0;
+      this.allItems.forEach(allItem => {
+        if (allItem.items && allItem.items.length > 0) {
+          allItem.items.forEach(item => {
+            total = total + parseInt(item.total);
+          });
+        }
       });
       return this.format(total.toString());
     },
@@ -428,11 +508,24 @@ export default {
       });
       return this.format(total.toString());
     },
+    getTotalGastosT: function () {
+      let total = 0;
+      this.allItems.forEach(allItem => {
+        if (allItem.gastos && allItem.gastos.length > 0) {
+          allItem.gastos.forEach(gasto => {
+            total = total + parseInt(gasto.valor);
+          });
+        }
+      });
+      return this.format(total.toString());
+    },
     getTotalCierre: function (items, gastos, totalTarjeta) {
       let totalVentas = 0;
-      items.forEach(item => {
-        totalVentas = totalVentas + parseInt(item.total);
-      });
+      if (items && items.length > 0) {
+        items.forEach(item => {
+          totalVentas = totalVentas + parseInt(item.total);
+        });
+      }
 
       let totalGastos = 0;
       gastos.forEach(gasto => {
@@ -440,7 +533,25 @@ export default {
       });
       let total = totalVentas - totalGastos - totalTarjeta;
       return this.format(total.toString());
-    } 
+    },
+    getTotalEfectivoT: function () {
+      let total = 0;
+      this.allItems.forEach(allItem => {
+        if (allItem.items && allItem.items.length > 0) {
+          total = total + parseInt(allItem.totalEfectivo);
+        }
+      });
+      return this.format(total.toString());
+    },
+    getTotalTarjetaT: function () {
+      let total = 0;
+      this.allItems.forEach(allItem => {
+        if (allItem.items && allItem.items.length > 0) {
+          total = total + parseInt(allItem.totalTarjeta);
+        }
+      });
+      return this.format(total.toString());
+    },
   },
   watch: {
   },

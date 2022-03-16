@@ -200,7 +200,7 @@ try {
       $use ->execute();
       $row = $use->fetch();
 
-      $totalVentasTarjeta = $row['total'];
+      $totalVentasTarjeta = $row['total'] == '' ? 0 : $row['total'];
       $data->totalTarjeta = $totalVentasTarjeta.'';
 
 
@@ -223,7 +223,7 @@ try {
       $use ->execute();
       $row = $use->fetch();
 
-      $totalVentasEfectivo = $row['total'];
+      $totalVentasEfectivo = $row['total'] == '' ? 0 : $row['total'];
       $data->totalEfectivo = $totalVentasEfectivo.'';
 
       header("HTTP/1.1 200 OK");
