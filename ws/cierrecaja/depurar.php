@@ -12,22 +12,23 @@ $frm = json_decode(file_get_contents('php://input'), true);
 
 try {
   
-  //  listar todos los posts o solo uno
   if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-      $registradopor = openCypher('decrypt', $_GET['token']);
-      if (isset($_GET['fecha'])) {
-      	 $sql = "CALL depurar_pedidos(?); ";
-            
-          $sql = $conexion->prepare($sql);
-          $sql->bindValue(1, $_GET['fecha']);
-	  $result = $sql->execute();
-	  if ($result) {
-            echo "{'salida': 'success'}";
-          } else {
-	    echo "{'salida': 'error'}";
-	  }
+    $registradopor = openCypher('decrypt', $_GET['token']);
+    if (isset($_GET['fecha'])) {
+      $fecha = json_decode($_GET['fecha'], true);
+      $fecha1 = substr($fecha["startDate"], 0, 10);
+      $fecha2 = substr($fecha["endDate"], 0, 10);
+      $sql = "CALL depurar_pedidos(?,?); ";
+      $sql = $conexion->prepare($sql);
+      $sql->bindValue(1, $fecha1);
+      $sql->bindValue(2, $fecha2);
+	    $result = $sql->execute();
+      if ($result) {
+        echo "{'salida': 'success'}";
+      } else {
+        echo "{'salida': 'error'}";
       }
-        
+    }
   }
 
   

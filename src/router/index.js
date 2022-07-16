@@ -101,7 +101,7 @@ export default new Router({
           component: CopiaFactura
         },
         {
-          path: 'delete',
+          path: 'delete_xxxx',
           name: 'Clear invoices',
           component: Delete
         },

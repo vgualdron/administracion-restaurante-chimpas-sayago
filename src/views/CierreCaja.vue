@@ -183,7 +183,7 @@
                       </tr>
                     </table>
                   </template>
-                  <b-alert v-else show variant="danger">No hay items para hacer cierre de caja. Seleccione otra fecha y genere el cierre de caja.</b-alert>
+                  <!-- <b-alert v-else show variant="danger">No hay items para hacer cierre de caja. Seleccione otra fecha y genere el cierre de caja.</b-alert> -->
                 </b-col>
               </b-row>
             </div>
